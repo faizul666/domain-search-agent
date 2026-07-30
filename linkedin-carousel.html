@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Domain Search Agent — carousel</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  @page{size:1080px 1350px;margin:0}
+  html,body{width:1080px}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#16192a}
+  .slide{width:1080px;height:1350px;padding:92px 84px;display:flex;flex-direction:column;
+    page-break-after:always;overflow:hidden;position:relative}
+  .slide:last-child{page-break-after:auto}
+  .white{background:#fff}
+  .soft{background:linear-gradient(160deg,#eef1fb,#e7ecfb)}
+  .brandbg{background:linear-gradient(150deg,#5b6bf0,#3fd9b0);color:#fff}
+  .kicker{font-size:22px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8a93b8}
+  .brandbg .kicker{color:rgba(255,255,255,.85)}
+  .logo{width:78px;height:78px;border-radius:20px;background:linear-gradient(135deg,#6c8cff,#4be0b4);
+    display:grid;place-items:center;font-size:40px;flex:0 0 auto}
+  .toprow{display:flex;align-items:center;gap:20px;margin-bottom:56px}
+  .toprow .kicker{margin:0}
+  h1{font-size:70px;font-weight:800;line-height:1.08;letter-spacing:-.01em}
+  h2{font-size:52px;font-weight:800;line-height:1.12;letter-spacing:-.01em}
+  .lead{font-size:30px;line-height:1.5;color:#4a5578}
+  .brandbg .lead{color:rgba(255,255,255,.92)}
+  .spacer{flex:1}
+  .foot{display:flex;align-items:center;justify-content:space-between;font-size:22px;color:#8a93b8;font-weight:600}
+  .brandbg .foot{color:rgba(255,255,255,.8)}
+  .swipe{display:inline-flex;align-items:center;gap:10px}
+  /* criteria card (slide 1) */
+  .card-slide{padding:70px 78px}
+  .card-slide h2{font-size:48px}
+  .card-slide .toprow{margin-bottom:22px}
+  .rows{display:flex;flex-direction:column;gap:18px}
+  .rows.fill{flex:1;justify-content:space-between}
+  .r-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px}
+  .r-top .n{font-weight:600;font-size:28px}
+  .r-top .w{color:#8a93b8;font-weight:800;font-size:28px}
+  .bar{height:12px;border-radius:7px;background:#eaf0ff;overflow:hidden}
+  .bar>i{display:block;height:100%;border-radius:7px;background:linear-gradient(90deg,#6c8cff,#4be0b4)}
+  .cardfoot{margin-top:30px;padding-top:26px;border-top:1.5px solid #e9edf8}
+  .cpills{display:flex;flex-wrap:wrap;gap:12px}
+  .cpill{font-size:20px;font-weight:600;padding:11px 20px;border-radius:999px}
+  .cp1{background:rgba(61,220,132,.16);color:#0f8a4c}
+  .cp2{background:rgba(108,140,255,.16);color:#3f57cc}
+  .cp3{background:#f1f3fb;color:#5c6588}
+  .ctag{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-top:24px}
+  .ctag .big{font-size:26px;font-weight:700}
+  .ctag .big span{color:#0f8a4c}
+  .ctag .repo{font-size:21px;color:#5c6588;font-weight:700}
+  .note{margin-top:32px;font-size:30px;font-weight:700}
+  .note span{color:#0f8a4c}
+  /* problem items */
+  .items{display:flex;flex-direction:column;gap:30px;margin-top:20px}
+  .item{display:flex;align-items:center;gap:26px;background:#f6f8ff;border:1.5px solid #e6ebfb;
+    border-radius:22px;padding:30px 34px}
+  .item .ic{width:74px;height:74px;border-radius:18px;display:grid;place-items:center;font-size:38px;flex:0 0 auto;background:#fff;border:1.5px solid #e6ebfb}
+  .item .t{font-size:34px;font-weight:700}
+  .item .d{font-size:24px;color:#5c6588;margin-top:4px}
+  /* steps */
+  .step{display:flex;gap:26px;align-items:flex-start;margin-top:34px}
+  .num{width:60px;height:60px;border-radius:50%;background:#eef1ff;color:#3f57cc;font-weight:800;
+    font-size:28px;display:grid;place-items:center;flex:0 0 auto}
+  .step .t{font-size:32px;font-weight:700;line-height:1.25}
+  .step .t span{font-weight:400;color:#5c6588;font-size:27px}
+  /* shot */
+  .shot{margin-top:40px;border-radius:20px;border:1.5px solid #e6ebfb;overflow:hidden;box-shadow:0 20px 50px rgba(30,40,90,.12)}
+  .shot img{display:block;width:100%;height:auto}
+  .cap{font-size:28px;color:#4a5578;margin-top:34px;line-height:1.45}
+  .cap b{color:#0f8a4c}
+  /* cta */
+  .pill{display:inline-block;font-size:26px;font-weight:700;background:rgba(255,255,255,.18);
+    padding:14px 26px;border-radius:999px;margin:0 12px 14px 0}
+  .repo{font-size:38px;font-weight:800;margin-top:8px;word-break:break-all}
+</style>
+</head>
+<body>
+
+<!-- 1. CRITERIA CARD (the widget) -->
+<section class="slide white card-slide">
+  <div class="toprow"><div class="logo">🔎</div><div class="kicker">Domain Search Agent</div></div>
+  <h2>What makes a domain worth registering?</h2>
+  <p class="lead" style="font-size:27px;margin:24px 0 4px">Every candidate is scored 1–10 on ten weighted criteria, normalised to /100 — and it only surfaces names whose <b style="color:#16192a">.com is actually available.</b></p>
+  <div class="rows fill" id="rows1" style="margin-top:26px"></div>
+  <div class="cardfoot">
+    <div class="cpills">
+      <span class="cpill cp1">✓ live .com availability (RDAP)</span>
+      <span class="cpill cp2">✨ AI name generation</span>
+      <span class="cpill cp3">🛡 trademark + social checks</span>
+    </div>
+    <div class="ctag">
+      <div class="big"><span>85+/100</span> is a strong domain</div>
+      <div class="repo">github.com/faizul666/domain-search-agent</div>
+    </div>
+  </div>
+</section>
+
+<!-- 2. HOOK -->
+<section class="slide brandbg">
+  <div class="toprow"><div class="logo">🔎</div><div class="kicker">Domain Search Agent</div></div>
+  <div class="spacer"></div>
+  <h1>You found the perfect brand name.<br><br>Then you checked the .com.<br><br>It was gone. 💀</h1>
+  <div class="spacer"></div>
+  <p class="lead">Here's the open-source tool I built to fix that. →</p>
+  <div style="height:40px"></div>
+  <div class="foot"><span class="swipe">swipe →</span><span>github.com/faizul666</span></div>
+</section>
+
+<!-- 3. PROBLEM -->
+<section class="slide white">
+  <div class="kicker">The problem</div>
+  <h2 style="margin-top:22px">Naming has three<br>silent killers</h2>
+  <div class="items">
+    <div class="item"><div class="ic">🌐</div><div><div class="t">The .com is taken</div><div class="d">…and it's the one that matters most.</div></div></div>
+    <div class="item"><div class="ic">⚖️</div><div><div class="t">A trademark landmine</div><div class="d">A name that's legally risky to use.</div></div></div>
+    <div class="item"><div class="ic">📵</div><div><div class="t">Handles already gone</div><div class="d">No matching @ on the socials.</div></div></div>
+  </div>
+  <div class="spacer"></div>
+  <p class="lead">You fall in love with a name — then one of these quietly kills it.</p>
+</section>
+
+<!-- 4. SOLUTION -->
+<section class="slide soft">
+  <div class="kicker">The fix</div>
+  <h2 style="margin-top:22px">It only shows names you can <span style="color:#0f8a4c">actually register.</span></h2>
+  <div class="step"><div class="num">1</div><div class="t">AI generates brandable names <span>from your business info (DeepSeek or Gemini)</span></div></div>
+  <div class="step"><div class="num">2</div><div class="t">A live RDAP lookup verifies the .com <span>— real registration status, no guessing</span></div></div>
+  <div class="step"><div class="num">3</div><div class="t">Trademark + GitHub/social screening <span>on every candidate</span></div></div>
+  <div class="step"><div class="num">4</div><div class="t">It loops until it finds N available .coms <span>— then ranks them</span></div></div>
+  <div class="spacer"></div>
+  <p class="lead">No more chasing names you can't have.</p>
+</section>
+
+<!-- 5. PROOF -->
+<section class="slide white">
+  <div class="kicker">The payoff</div>
+  <h2 style="margin-top:22px">A ranked, available shortlist</h2>
+  <div class="shot"><img src="docs/screenshot.png" alt="Results table of scored, available domains" /></div>
+  <p class="cap">Every name in the list has an <b>available .com</b>, scored and ranked — so you pick from winners, not dead ends.</p>
+</section>
+
+<!-- 6. CTA -->
+<section class="slide brandbg">
+  <div class="toprow"><div class="logo">🔎</div><div class="kicker">Free &amp; open source</div></div>
+  <div class="spacer"></div>
+  <h1>Try it. Star it.<br>Make it yours.</h1>
+  <p class="lead" style="margin-top:30px">Runs locally · bring your own API key · nothing sensitive leaves your machine.</p>
+  <div style="margin-top:34px">
+    <span class="pill">⭐ open source</span><span class="pill">Node.js</span><span class="pill">DeepSeek / Gemini</span>
+  </div>
+  <div class="repo">github.com/faizul666/<br>domain-search-agent</div>
+  <div class="spacer"></div>
+  <p class="lead">Ever lost a great name to a taken domain? Tell me in the comments.</p>
+</section>
+
+<script>
+  const data=[["Brandable",10],[".com available (verified live)",10],["Trademark safe",10],
+    ["Short",9],["Easy to spell",9],["Future-proof",9],["Social handles free",8],
+    ["Easy to pronounce",8],["Professional",8],["SEO / searchable",7]];
+  document.getElementById('rows1').innerHTML=data.map(([n,w])=>`
+    <div class="row">
+      <div class="r-top"><span class="n">${n}</span><span class="w">${w}</span></div>
+      <div class="bar"><i style="width:${w*10}%"></i></div>
+    </div>`).join('');
+</script>
+</body>
+</html>
