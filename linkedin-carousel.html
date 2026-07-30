@@ -69,6 +69,24 @@
   .shot img{display:block;width:100%;height:auto}
   .cap{font-size:28px;color:#4a5578;margin-top:34px;line-height:1.45}
   .cap b{color:#0f8a4c}
+  /* results leaderboard */
+  .board{margin-top:36px;display:flex;flex-direction:column;gap:16px}
+  .brow{display:flex;align-items:center;gap:22px;background:#fff;border:1.5px solid #e6ebfb;
+    border-radius:20px;padding:24px 30px}
+  .brow .rank{width:48px;height:48px;border-radius:50%;background:#eef1ff;color:#3f57cc;font-weight:800;
+    font-size:24px;display:grid;place-items:center;flex:0 0 auto}
+  .brow .dom{font-size:40px;font-weight:800;flex:1}
+  .brow .avail{font-size:22px;font-weight:700;color:#0f8a4c;background:rgba(61,220,132,.16);
+    padding:9px 20px;border-radius:999px}
+  .brow .sc{font-size:40px;font-weight:800;width:118px;text-align:right}
+  .brow .sc.hi{color:#0f8a4c}.brow .sc.mid{color:#c98500}
+  /* intake questions */
+  .qs{margin-top:34px;display:flex;flex-direction:column;gap:22px}
+  .q .lab{font-size:28px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:16px}
+  .q .lab .n{width:46px;height:46px;border-radius:50%;background:#eef1ff;color:#3f57cc;font-weight:800;
+    font-size:22px;display:grid;place-items:center;flex:0 0 auto}
+  .q .box2{background:#f6f8ff;border:1.5px solid #e6ebfb;border-radius:16px;padding:20px 26px;
+    font-size:25px;color:#8a93b8}
   /* cta */
   .pill{display:inline-block;font-size:26px;font-weight:700;background:rgba(255,255,255,.18);
     padding:14px 26px;border-radius:999px;margin:0 12px 14px 0}
@@ -100,16 +118,24 @@
 <section class="slide soft">
   <div class="kicker">The payoff</div>
   <h2 style="margin-top:22px">A ranked, available shortlist</h2>
-  <div class="shot"><img src="docs/screenshot.png" alt="Results table of scored, available domains" /></div>
-  <p class="cap">Every name in the list has an <b>available .com</b>, scored and ranked — so you pick from winners, not dead ends.</p>
+  <div class="board" id="board"></div>
+  <div class="spacer"></div>
+  <p class="cap">Every name here has an <b>available .com</b>, scored and ranked — so you pick from winners, not dead ends.</p>
 </section>
 
 <!-- 3. INTAKE -->
 <section class="slide white">
   <div class="kicker">How it starts</div>
-  <h2 style="margin-top:22px">Tell it about your business</h2>
-  <div class="shot"><img src="docs/1-intake.png" alt="Intake form: business info and 5 questions" /></div>
-  <p class="cap">A brand seed, what you do, keywords, and 5 quick questions — that's all it needs to start.</p>
+  <h2 style="margin-top:22px">Answer 5 quick questions</h2>
+  <div class="qs">
+    <div class="q"><div class="lab"><span class="n">1</span>Core keywords</div><div class="box2">coffee, roast, fresh, office</div></div>
+    <div class="q"><div class="lab"><span class="n">2</span>Audience &amp; tone</div><div class="box2">young professionals, premium but friendly</div></div>
+    <div class="q"><div class="lab"><span class="n">3</span>Naming style you prefer</div><div class="box2">invented / brandable</div></div>
+    <div class="q"><div class="lab"><span class="n">4</span>Words to include / avoid</div><div class="box2">avoid: cheap, 24 · like: nest</div></div>
+    <div class="q"><div class="lab"><span class="n">5</span>TLDs to check &amp; max length</div><div class="box2">.com · max 12 characters</div></div>
+  </div>
+  <div class="spacer"></div>
+  <p class="cap">That's all it needs to start generating and checking names.</p>
 </section>
 
 <!-- 4. HOOK -->
@@ -170,6 +196,15 @@
     <div class="row">
       <div class="r-top"><span class="n">${n}</span><span class="w">${w}</span></div>
       <div class="bar"><i style="width:${w*10}%"></i></div>
+    </div>`).join('');
+
+  const board=[["glenthy",91.1],["jotren",86.7],["zerpty",85.8],["ogente",85.6],["plevit",85.6],["florvet",84.5]];
+  document.getElementById('board').innerHTML=board.map(([d,s],i)=>`
+    <div class="brow">
+      <span class="rank">${i+1}</span>
+      <span class="dom">${d}<span style="font-weight:400;color:#8a93b8">.com</span></span>
+      <span class="avail">available</span>
+      <span class="sc ${s>=85?'hi':'mid'}">${s}</span>
     </div>`).join('');
 </script>
 </body>
