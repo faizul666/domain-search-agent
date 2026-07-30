@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Domain Search Agent</title>
+<style>
+  :root{
+    --bg:#0f1220; --panel:#171a2b; --panel2:#1e2338; --line:#2a3050;
+    --txt:#e7e9f3; --muted:#9aa3c7; --accent:#6c8cff; --accent2:#4be0b4;
+    --good:#3ddc84; --mid:#ffcc55; --bad:#ff6b6b; --chip:#232946;
+    --radius:14px; --shadow:0 8px 30px rgba(0,0,0,.35);
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --bg:#f4f6fc; --panel:#ffffff; --panel2:#f0f3fb; --line:#e2e7f5;
+      --txt:#16192a; --muted:#5c6588; --chip:#eef1fb; --shadow:0 8px 30px rgba(30,40,90,.10);
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  .wrap{max-width:1080px;margin:0 auto;padding:28px 20px 80px}
+  header.top{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+  .logo{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+    display:grid;place-items:center;font-size:22px;box-shadow:var(--shadow)}
+  h1{font-size:22px;margin:0}
+  .sub{color:var(--muted);margin:2px 0 22px;font-size:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:22px;margin-bottom:20px;box-shadow:var(--shadow)}
+  .card h2{margin:0 0 4px;font-size:16px}
+  .card .hint{color:var(--muted);font-size:13px;margin:0 0 16px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:680px){.grid{grid-template-columns:1fr}}
+  label{display:block;font-size:13px;font-weight:600;margin:0 0 6px;color:var(--txt)}
+  .qnum{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;
+    background:var(--accent);color:#fff;font-size:11px;font-weight:700;margin-right:7px}
+  input[type=text],textarea,select{width:100%;background:var(--panel2);border:1px solid var(--line);
+    color:var(--txt);border-radius:10px;padding:10px 12px;font:inherit;outline:none}
+  input:focus,textarea:focus,select:focus{border-color:var(--accent)}
+  textarea{resize:vertical;min-height:70px}
+  .field{margin-bottom:14px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  button{cursor:pointer;border:none;border-radius:10px;font:inherit;font-weight:600;padding:11px 18px;color:#fff;
+    background:var(--accent);transition:.15s transform,.15s opacity}
+  button:hover{opacity:.92} button:active{transform:translateY(1px)}
+  button.ghost{background:var(--chip);color:var(--txt);border:1px solid var(--line)}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .chip{background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:12px;color:var(--muted);cursor:pointer}
+  .chip.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .adv{border-top:1px dashed var(--line);margin-top:6px;padding-top:14px}
+  details summary{cursor:pointer;color:var(--muted);font-size:13px;margin-bottom:10px}
+  .status{font-size:13px;color:var(--muted);margin-left:auto}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+  th,td{padding:9px 10px;text-align:center;white-space:nowrap;border-bottom:1px solid var(--line)}
+  th{position:sticky;top:0;background:var(--panel2);cursor:pointer;user-select:none;font-size:12px;color:var(--muted)}
+  th.name,td.name{text-align:left;position:sticky;left:0;background:var(--panel);z-index:1}
+  th.name{z-index:2}
+  tr:hover td{background:var(--panel2)}
+  .dom{font-weight:700}
+  .badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700}
+  .b-good{background:rgba(61,220,132,.15);color:var(--good)}
+  .b-bad{background:rgba(255,107,107,.15);color:var(--bad)}
+  .b-unk{background:rgba(154,163,199,.15);color:var(--muted)}
+  .score{font-weight:800;font-size:14px}
+  .sc-hi{color:var(--good)} .sc-mid{color:var(--mid)} .sc-lo{color:var(--bad)}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+  .legend{color:var(--muted);font-size:12px;margin-top:12px;line-height:1.7}
+  .legend code{background:var(--chip);padding:1px 6px;border-radius:6px}
+  .pill{font-size:11px;padding:2px 9px;border-radius:999px;background:var(--chip);color:var(--muted);border:1px solid var(--line)}
+  .minibar{height:6px;border-radius:4px;background:var(--line);overflow:hidden;margin-top:3px}
+  .minibar>i{display:block;height:100%;border-radius:4px}
+  .footnote{color:var(--muted);font-size:12px}
+  a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="logo">🔎</div>
+    <div>
+      <h1>Domain Search Agent</h1>
+      <div class="sub">Tell it about your business, answer 5 questions, get a scored, availability-checked shortlist.</div>
+    </div>
+  </header>
+
+  <!-- STEP 1: BUSINESS INFO + 5 QUESTIONS -->
+  <section class="card">
+    <h2>1 · About your business & 5 quick questions</h2>
+    <p class="hint">Everything here feeds name generation and scoring. The more specific, the better the shortlist.</p>
+
+    <div class="field">
+      <label>Business name idea or brand seed (optional)</label>
+      <input id="brand" type="text" placeholder="e.g. Northwind, Zappy, or leave blank to invent from keywords" />
+    </div>
+    <div class="field">
+      <label>What does your business do? (1–2 lines)</label>
+      <textarea id="about" placeholder="e.g. A subscription app that delivers fresh coffee to home offices."></textarea>
+    </div>
+
+    <div class="grid">
+      <div class="field">
+        <label><span class="qnum">1</span>Core keywords (comma separated)</label>
+        <input id="q_keywords" type="text" placeholder="coffee, brew, fresh, office" />
+      </div>
+      <div class="field">
+        <label><span class="qnum">2</span>Audience & tone</label>
+        <input id="q_tone" type="text" placeholder="e.g. young professionals, premium but friendly" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label><span class="qnum">3</span>Naming style you prefer</label>
+      <div class="chips" id="styleChips">
+        <span class="chip active" data-v="brandable">Invented / brandable</span>
+        <span class="chip" data-v="compound">Compound (two real words)</span>
+        <span class="chip" data-v="keyword">Keyword-rich (SEO)</span>
+        <span class="chip" data-v="realword">Single real word</span>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="field">
+        <label><span class="qnum">4</span>Words to include / avoid</label>
+        <input id="q_avoid" type="text" placeholder="avoid: cheap, 24; like: nest, hub" />
+      </div>
+      <div class="field">
+        <label><span class="qnum">5</span>TLDs to check & max length</label>
+        <div class="row">
+          <div class="chips" id="tldChips" style="flex:1">
+            <span class="chip active" data-v="com">.com</span>
+            <span class="chip" data-v="io">.io</span>
+            <span class="chip" data-v="co">.co</span>
+            <span class="chip" data-v="ai">.ai</span>
+            <span class="chip" data-v="net">.net</span>
+            <span class="chip" data-v="app">.app</span>
+          </div>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <label style="margin:0">Max chars</label>
+          <input id="q_maxlen" type="text" value="12" style="width:70px" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 2: CANDIDATES -->
+  <section class="card">
+    <h2>2 · Candidate names</h2>
+    <p class="hint">Generate ideas from your inputs, then edit freely — one name per line, no TLD (just the word).</p>
+    <div class="row" style="margin-bottom:12px">
+      <button id="aiBtn">🤖 Generate with AI (DeepSeek)</button>
+      <button class="ghost" id="genBtn">✨ Rule-based ideas</button>
+      <button class="ghost" id="clearBtn">Clear</button>
+      <span class="status" id="genStatus"></span>
+    </div>
+    <textarea id="candidates" style="min-height:150px" placeholder="northwind&#10;brewnest&#10;zappy&#10;..."></textarea>
+  </section>
+
+  <!-- STEP 3: RUN -->
+  <section class="card">
+    <h2>3 · Check availability & score</h2>
+    <p class="hint">Runs a live <b>RDAP</b> lookup for each TLD (real registration status, no API key), then scores every candidate.</p>
+
+    <details>
+      <summary>⚙️ Data sources — advanced</summary>
+      <div class="adv">
+        <p class="footnote" style="margin:0 0 10px">
+          When the backend server is running, <b>trademark</b> (USPTO) and <b>social handles</b> (GitHub + best-effort) are checked live via <code>/api/*</code>.
+          You can override with your own endpoints below; leave blank to use the built-in backend (or the name-only estimate if no backend is reachable).
+        </p>
+        <div class="grid">
+          <div class="field">
+            <label>Trademark endpoint override (optional)</label>
+            <input id="tmEndpoint" type="text" placeholder="default: /api/trademark?q=" />
+          </div>
+          <div class="field">
+            <label>Social-handle endpoint override (optional)</label>
+            <input id="socEndpoint" type="text" placeholder="default: /api/social?q=" />
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <div class="row" style="margin-top:6px">
+      <label style="margin:0">Target</label>
+      <input id="targetN" type="text" value="10" style="width:48px;text-align:center" />
+      <button id="findBtn">🎯 Find available .com</button>
+      <button class="ghost" id="runBtn">🚀 Score current list</button>
+      <span class="status" id="runStatus"></span>
+    </div>
+    <p class="footnote" style="margin:10px 0 0">
+      <b>Find N available .com</b> keeps generating with the AI provider and checking RDAP until it has N registerable <code>.com</code> names, then scores just those. This is the main flow — it only ever shows domains you can actually register.
+    </p>
+  </section>
+
+  <!-- RESULTS -->
+  <section class="card" id="resultsCard" style="display:none">
+    <h2>Results</h2>
+    <div class="toolbar">
+      <label class="row" style="font-weight:600;gap:6px"><input type="checkbox" id="fAvail" style="width:auto"/> Only .com-available</label>
+      <label class="row" style="font-weight:600;gap:6px"><input type="checkbox" id="f85" style="width:auto"/> Only 85+ score</label>
+      <span class="status" id="resCount"></span>
+    </div>
+    <div class="tablewrap">
+      <table id="tbl">
+        <thead><tr id="headRow"></tr></thead>
+        <tbody id="body"></tbody>
+      </table>
+    </div>
+    <div class="legend" id="legend"></div>
+  </section>
+
+</div>
+
+<script>
+/* ============================================================
+   Domain Search Agent — scoring + live RDAP availability
+   ------------------------------------------------------------
+   Scoring model: each criterion scored 1–10, multiplied by its
+   weight, summed, then normalised to /100 as a weighted average:
+       final = Σ(score_i × weight_i) / Σ(weight_i) × 10
+   So a domain averaging 8.5/10 across weighted criteria = 85/100.
+   ============================================================ */
+
+const CRITERIA = [
+  {key:'brandable', label:'Brandable',   weight:10},
+  {key:'short',     label:'Short',       weight:9},
+  {key:'spell',     label:'Easy spell',  weight:9},
+  {key:'com',       label:'.com avail',  weight:10},
+  {key:'tm',        label:'TM safe',     weight:10},
+  {key:'social',    label:'Socials',     weight:8},
+  {key:'future',    label:'Future-proof',weight:9},
+  {key:'pron',      label:'Pronounce',   weight:8},
+  {key:'seo',       label:'SEO',         weight:7},
+  {key:'pro',       label:'Professional',weight:8},
+];
+const WSUM = CRITERIA.reduce((a,c)=>a+c.weight,0);
+let PROVIDER_INFO = { provider:'deepseek', groundedTrademark:false, keySet:false };
+
+/* ---------- helpers ---------- */
+const $ = id => document.getElementById(id);
+const clamp = (n,a=1,b=10)=>Math.max(a,Math.min(b,n));
+const VOWELS = 'aeiouy';
+const cleanWord = s => (s||'').toLowerCase().replace(/[^a-z0-9-]/g,'');
+
+function selectedChips(id){
+  return [...$(id).querySelectorAll('.chip.active')].map(c=>c.dataset.v);
+}
+document.querySelectorAll('.chips').forEach(box=>{
+  box.addEventListener('click',e=>{
+    const chip = e.target.closest('.chip'); if(!chip) return;
+    // style + tld allow multi-select; toggle
+    chip.classList.toggle('active');
+  });
+});
+
+/* ---------- heuristic scorers (word = SLD, no TLD) ---------- */
+function estSyllables(w){
+  w = w.replace(/[^a-z]/g,''); if(!w) return 1;
+  let groups = w.match(/[aeiouy]+/g); let n = groups?groups.length:1;
+  if(w.endsWith('e')&&n>1) n--;                 // silent e
+  return Math.max(1,n);
+}
+function maxConsonantRun(w){
+  let m=0,c=0; for(const ch of w.replace(/[^a-z]/g,'')){
+    if(VOWELS.includes(ch)){c=0}else{c++;m=Math.max(m,c)}
+  } return m;
+}
+function scoreShort(w){
+  const n = w.replace(/[^a-z0-9]/g,'').length;
+  if(n<=4) return 10; if(n<=5) return 10; if(n<=6) return 9;
+  if(n<=7) return 8; if(n<=8) return 7; if(n<=9) return 6;
+  if(n<=10) return 5; if(n<=12) return 4; return 2;
+}
+function scoreSpell(w){
+  let s=10;
+  if(/[0-9]/.test(w)) s-=3;                     // numbers are misheard
+  if(/-/.test(w)) s-=2;                          // hyphens
+  if(/(.)\1\1/.test(w)) s-=2;                    // triple letters
+  if(/(ph|gh|kn|wr|mb|ough|eau|ie|ei)/.test(w)) s-=1; // ambiguous spellings
+  if(maxConsonantRun(w)>=4) s-=2;
+  return clamp(s);
+}
+function scorePron(w){
+  let s=10;
+  const run = maxConsonantRun(w);
+  if(run>=5) s-=4; else if(run>=4) s-=2; else if(run>=3) s-=1;
+  const syl = estSyllables(w);
+  if(syl>=5) s-=3; else if(syl>=4) s-=1;
+  if(/[0-9-]/.test(w)) s-=2;
+  const vowels=(w.match(/[aeiouy]/g)||[]).length;
+  if(vowels===0) s-=3;
+  return clamp(s);
+}
+function scoreBrandable(w,style){
+  let s=6;
+  const n=w.length;
+  if(n>=4&&n<=9) s+=2; else if(n>10) s-=1;
+  if(!/[0-9-]/.test(w)) s+=1;                    // clean chars
+  if(estSyllables(w)<=3) s+=1;
+  if(/(ify|ly|ster|zy|oo|io|va|ora|era|zo|qi)/.test(w)) s+=1; // brand-y textures
+  if(style.includes('brandable')||style.includes('realword')) s+=1;
+  if(style.includes('keyword')) s-=1;            // descriptive = less brandable
+  return clamp(s);
+}
+function scoreFuture(w){
+  let s=10;
+  if(/[0-9]/.test(w)) s-=3;
+  if(/-/.test(w)) s-=2;
+  if(/(ify|360|247|24|hq|app|online|web)$/.test(w)) s-=2; // trend/dated suffixes
+  if(w.length>14) s-=2;
+  return clamp(s);
+}
+function scoreSeo(w,keywords,style){
+  let s=5;
+  const kws=keywords.map(cleanWord).filter(Boolean);
+  const hit = kws.some(k=>k && w.includes(k));
+  if(hit) s+=3;
+  if(style.includes('keyword')) s+=1;
+  if(style.includes('brandable')&&!hit) s-=1;    // invented words need brand-building for SEO
+  if(w.length<=3) s-=1;                           // very short = generic, hard to rank
+  return clamp(s);
+}
+function scorePro(w){
+  let s=10;
+  if(/[0-9]/.test(w)) s-=2;
+  if(/-/.test(w)) s-=3;
+  if(/(xx|zz|420|69|lol)/.test(w)) s-=2;
+  if(w.length>15) s-=2;
+  return clamp(s);
+}
+/* trademark: heuristic only unless an endpoint is supplied.
+   Neutral 7 = "unverified, please check manually". */
+function scoreTM(w){
+  const risky=['apple','google','amazon','nike','coke','disney','meta','tesla','uber','netflix','paypal'];
+  if(risky.some(r=>w.includes(r))) return 1;
+  return 7; // unverified-but-no-obvious-collision
+}
+/* social: estimate from name (real value overwritten by API if provided) */
+function scoreSocialEst(w){
+  // shorter, cleaner, more unique => more likely handle is free
+  let s=6;
+  if(w.length<=6) s+=1;
+  if(!/[0-9-]/.test(w)) s+=1;
+  if(estSyllables(w)>=3) s+=1;                    // longer/unique less contested
+  return clamp(s);
+}
+
+/* ---------- candidate generation ---------- */
+const PREFIX=['get','try','go','use','my','the','join','hey'];
+const SUFFIX=['ly','ify','hub','labs','ify','io','nest','base','flow','wave','ora','zy','oo','spark','loop','kit','ai'];
+function generateCandidates(){
+  const brand=cleanWord($('brand').value);
+  const kws=($('q_keywords').value||'').split(',').map(cleanWord).filter(Boolean);
+  const styles=selectedChips('styleChips');
+  const maxlen=parseInt($('q_maxlen').value)||14;
+  const avoidRaw=($('q_avoid').value||'').toLowerCase();
+  const avoid=(avoidRaw.match(/avoid:([^;]*)/)?.[1]||avoidRaw).split(/[, ]+/).map(cleanWord).filter(Boolean);
+  const out=new Set();
+
+  const add=w=>{w=cleanWord(w); if(w&&w.length>=3&&w.length<=maxlen&&!avoid.some(a=>a&&w.includes(a))) out.add(w);};
+
+  if(brand) add(brand);
+
+  // compound: keyword + keyword, keyword + suffix, prefix + keyword
+  kws.forEach(k=>{
+    add(k);
+    if(styles.includes('compound')||styles.includes('keyword')){
+      kws.forEach(k2=>{ if(k2!==k) add(k+k2); });
+    }
+    if(styles.includes('brandable')||styles.length===0){
+      SUFFIX.forEach(s=>add(k+s));
+      PREFIX.forEach(p=>add(p+k));
+    }
+    if(styles.includes('keyword')){
+      SUFFIX.slice(0,6).forEach(s=>add(k+s));
+    }
+    // brandable: trim vowels / portmanteau
+    add(k.replace(/[aeiou]$/,'')+'o');
+    add(k.slice(0,4)+'ly');
+  });
+  // brand + keyword blends
+  if(brand) kws.forEach(k=>{add(brand+k);add(k+brand);});
+
+  return [...out].slice(0,60);
+}
+
+/* ---------- live availability via RDAP ---------- */
+/* RDAP: HTTP 404 = available, 200 = registered. rdap.org bootstraps
+   to the correct registry and sends CORS headers. */
+async function rdapAvailable(domain){
+  try{
+    const r=await fetch('https://rdap.org/domain/'+encodeURIComponent(domain),
+      {method:'GET',headers:{'Accept':'application/rdap+json'}});
+    if(r.status===404) return true;      // available
+    if(r.status>=200&&r.status<300) return false; // registered
+    if(r.status===429) return null;      // rate-limited => unknown
+    return null;                         // other => unknown
+  }catch(e){ return null; }              // network/CORS => unknown
+}
+// simple concurrency limiter
+async function mapLimit(items,limit,fn,onEach){
+  const res=new Array(items.length); let i=0;
+  async function worker(){ while(i<items.length){ const idx=i++; res[idx]=await fn(items[idx],idx); onEach&&onEach(); } }
+  await Promise.all(Array.from({length:Math.min(limit,items.length)},worker));
+  return res;
+}
+
+/* ---------- optional external hooks ---------- */
+async function tmLookup(word){
+  const ep=$('tmEndpoint').value.trim() || '/api/trademark?q=';
+  try{ const r=await fetch(ep+encodeURIComponent(word)); if(!r.ok) return null;
+    const j=await r.json();
+    // expected: {risk: 0..10}  (10 = totally safe)
+    return typeof j.risk==='number'? clamp(j.risk):null; }catch(e){ return null; }
+}
+async function socialLookup(word){
+  const ep=$('socEndpoint').value.trim() || '/api/social?q=';
+  try{ const r=await fetch(ep+encodeURIComponent(word)); if(!r.ok) return null;
+    const j=await r.json();
+    // expected: {score: 0..10}
+    return typeof j.score==='number'? clamp(j.score):null; }catch(e){ return null; }
+}
+
+/* ---------- main run ---------- */
+let LAST=[];
+
+/* Ask the DeepSeek backend for `count` names, excluding any already tried. */
+async function aiGenerate(count, exclude){
+  const payload={
+    brand:$('brand').value, about:$('about').value,
+    keywords:$('q_keywords').value, tone:$('q_tone').value,
+    styles:selectedChips('styleChips'), avoid:$('q_avoid').value,
+    maxlen:parseInt($('q_maxlen').value)||12, count, exclude:exclude||[]
+  };
+  const r=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  const j=await r.json();
+  if(j.error) throw new Error(j.error);
+  return (j.names||[]).map(cleanWord).filter(Boolean);
+}
+
+/* Score a fixed list of words. availMapPre lets callers reuse RDAP results. */
+async function scoreWords(words, tlds, availMapPre){
+  const primaryTld = tlds.includes('com')?'com':tlds[0];
+  const keywords=($('q_keywords').value||'').split(',');
+  const styles=selectedChips('styleChips');
+  const availMap=availMapPre||{};
+  const lookups=[];
+  words.forEach(w=>tlds.forEach(t=>{ if(availMap[w+'.'+t]===undefined) lookups.push({w,t,domain:w+'.'+t}); }));
+  let done=0;
+  if(lookups.length){
+    $('runStatus').textContent=`Checking ${lookups.length} domains via RDAP…`;
+    await mapLimit(lookups,5,async l=>{ availMap[l.domain]=await rdapAvailable(l.domain); },
+      ()=>{ done++; $('runStatus').textContent=`Checked ${done}/${lookups.length} domains…`; });
+  }
+  $('runStatus').textContent='Scoring (trademark + social)…';
+  const rows=[];
+  for(const w of words){
+    const tmApi=await tmLookup(w);
+    const socApi=await socialLookup(w);
+    const primAvail=availMap[w+'.'+primaryTld];
+    const sc={
+      brandable:scoreBrandable(w,styles),
+      short:scoreShort(w),
+      spell:scoreSpell(w),
+      com: primAvail===true?10 : primAvail===false?1 : 5, // unknown=neutral
+      tm: tmApi!=null?tmApi:scoreTM(w),
+      social: socApi!=null?socApi:scoreSocialEst(w),
+      future:scoreFuture(w),
+      pron:scorePron(w),
+      seo:scoreSeo(w,keywords,styles),
+      pro:scorePro(w),
+    };
+    let weighted=0; CRITERIA.forEach(c=>weighted+=sc[c.key]*c.weight);
+    const final=Math.round(weighted/WSUM*10*10)/10; // /100, 1 decimal
+    const avail={}; tlds.forEach(t=>avail[t]=availMap[w+'.'+t]);
+    rows.push({w,sc,final,avail,primAvail,tmVerified:tmApi!=null,socVerified:socApi!=null});
+  }
+  rows.sort((a,b)=>b.final-a.final);
+  LAST=rows;
+  render(tlds);
+  return rows;
+}
+
+/* Score whatever is in the candidates box. */
+async function run(){
+  const words=$('candidates').value.split('\n').map(cleanWord).filter(w=>w.length>=3);
+  if(!words.length){ $('runStatus').textContent='Add some candidate names first.'; return; }
+  const tlds=selectedChips('tldChips'); if(!tlds.length){ $('runStatus').textContent='Pick at least one TLD.'; return; }
+  $('runBtn').disabled=true; $('findBtn').disabled=true;
+  try{ const rows=await scoreWords(words, tlds); $('runStatus').textContent=`Done — ${rows.length} candidates scored.`; }
+  catch(e){ $('runStatus').textContent='Error: '+e.message; }
+  $('runBtn').disabled=false; $('findBtn').disabled=false;
+}
+
+/* THE MAIN FLOW: loop generate + RDAP until `target` .com names are available,
+   then score only those and show them (available-only). */
+async function findAvailable(){
+  const target=Math.max(1,Math.min(25,parseInt($('targetN').value)||10));
+  const tlds=selectedChips('tldChips'); if(!tlds.length){ $('runStatus').textContent='Pick at least one TLD.'; return; }
+  $('findBtn').disabled=true; $('runBtn').disabled=true;
+  const tried=new Set(); const availMap={}; const availableWords=[];
+  let queue=$('candidates').value.split('\n').map(cleanWord).filter(w=>w.length>=3); // seed from box
+  let rounds=0; const maxRounds=8, maxTried=200;
+  try{
+    while(availableWords.length<target && rounds<maxRounds && tried.size<maxTried){
+      rounds++;
+      if(queue.length===0){
+        $('runStatus').textContent=`Round ${rounds}: asking DeepSeek for more names…`;
+        let names;
+        try{ names=await aiGenerate(Math.max(15,(target-availableWords.length)*4), [...tried]); }
+        catch(e){ $('runStatus').textContent='AI error: '+e.message+' — is the server running (node server.js)?'; break; }
+        queue=names.filter(w=>w.length>=3 && !tried.has(w));
+        if(queue.length===0){ $('runStatus').textContent='DeepSeek ran out of fresh names — try broader keywords.'; break; }
+      }
+      const batch=queue.splice(0,20); batch.forEach(w=>tried.add(w));
+      let done=0;
+      await mapLimit(batch,6, async w=>{
+        const a=await rdapAvailable(w+'.com'); availMap[w+'.com']=a;
+        if(a===true && availableWords.length<target && !availableWords.includes(w)) availableWords.push(w);
+      },()=>{ done++; $('runStatus').textContent=`Round ${rounds}: RDAP ${done}/${batch.length} · ${availableWords.length}/${target} available so far…`; });
+    }
+    if(!availableWords.length){
+      $('runStatus').textContent='No available .com found — try different/broader keywords.';
+    } else {
+      const finalWords=availableWords.slice(0,target);
+      $('candidates').value=finalWords.join('\n');
+      $('runStatus').textContent=`Found ${finalWords.length} available .com — scoring trademark + social…`;
+      const rows=await scoreWords(finalWords, tlds, availMap);
+      $('fAvail').checked=true; draw(tlds); // show available-only
+      const short=rows.filter(r=>r.final>=85).length;
+      $('runStatus').textContent=`✓ ${finalWords.length} available .com, ranked${short?` (${short} score 85+)`:''} · checked ${tried.size} names in ${rounds} round(s).`;
+    }
+  }catch(e){ $('runStatus').textContent='Error: '+e.message; }
+  $('findBtn').disabled=false; $('runBtn').disabled=false;
+}
+
+/* ---------- rendering ---------- */
+let sortKey='final', sortDir=-1;
+function render(tlds){
+  $('resultsCard').style.display='';
+  const head=$('headRow'); head.innerHTML='';
+  const cols=[{key:'w',label:'Domain',cls:'name'},{key:'final',label:'Score /100'}]
+    .concat(tlds.map(t=>({key:'tld_'+t,label:'.'+t})))
+    .concat(CRITERIA.map(c=>({key:c.key,label:c.label+' ('+c.weight+')'})));
+  cols.forEach(c=>{
+    const th=document.createElement('th'); th.textContent=c.label; if(c.cls)th.className=c.cls;
+    th.onclick=()=>{ if(sortKey===c.key)sortDir*=-1; else{sortKey=c.key;sortDir=(c.key==='w')?1:-1;} draw(tlds); };
+    head.appendChild(th);
+  });
+  draw(tlds);
+  buildLegend();
+}
+function scoreClass(v){ return v>=85?'sc-hi':v>=70?'sc-mid':'sc-lo'; }
+function availBadge(a){
+  if(a===true) return '<span class="badge b-good">available</span>';
+  if(a===false) return '<span class="badge b-bad">taken</span>';
+  return '<span class="badge b-unk">unknown</span>';
+}
+function draw(tlds){
+  const onlyAvail=$('fAvail').checked, only85=$('f85').checked;
+  let rows=LAST.filter(r=>(!onlyAvail||r.primAvail===true)&&(!only85||r.final>=85));
+  rows.sort((a,b)=>{
+    let av,bv;
+    if(sortKey==='w'){av=a.w;bv=b.w;return av<bv?-sortDir:av>bv?sortDir:0;}
+    if(sortKey.startsWith('tld_')){const t=sortKey.slice(4);av=a.avail[t]===true?1:0;bv=b.avail[t]===true?1:0;}
+    else if(sortKey==='final'){av=a.final;bv=b.final;}
+    else{av=a.sc[sortKey];bv=b.sc[sortKey];}
+    return (av-bv)*sortDir;
+  });
+  const body=$('body'); body.innerHTML='';
+  rows.forEach(r=>{
+    const tr=document.createElement('tr');
+    let html=`<td class="name"><span class="dom">${r.w}</span>`+
+             `<div class="minibar"><i style="width:${r.final}%;background:${r.final>=85?'var(--good)':r.final>=70?'var(--mid)':'var(--bad)'}"></i></div></td>`+
+             `<td><span class="score ${scoreClass(r.final)}">${r.final}</span></td>`;
+    tlds.forEach(t=>html+=`<td>${availBadge(r.avail[t])}</td>`);
+    CRITERIA.forEach(c=>{
+      let v=r.sc[c.key]; let extra='';
+      if(c.key==='tm'&&!r.tmVerified) extra=' title="unverified — check manually"';
+      if(c.key==='social'&&!r.socVerified) extra=' title="estimated"';
+      html+=`<td${extra}>${v}${(c.key==='tm'&&!r.tmVerified)||(c.key==='social'&&!r.socVerified)?'<span style="color:var(--muted)">*</span>':''}</td>`;
+    });
+    tr.innerHTML=html; body.appendChild(tr);
+  });
+  const avail=LAST.filter(r=>r.primAvail===true).length;
+  const strong=LAST.filter(r=>r.final>=85).length;
+  const both=LAST.filter(r=>r.primAvail===true&&r.final>=85).length;
+  $('resCount').textContent=`${rows.length} shown · ${avail} available · ${strong} score 85+ · ${both} available AND 85+`;
+}
+function buildLegend(){
+  $('legend').innerHTML=
+    `<b>How the score works:</b> each criterion is rated 1–10 and weighted, then normalised to a weighted average out of 100 — `+
+    `<code>Σ(score×weight) / ${WSUM} × 10</code>. <b>85+</b> is a strong domain.<br>`+
+    `Weights — ${CRITERIA.map(c=>c.label+' <span class="pill">'+c.weight+'</span>').join(' · ')}<br>`+
+    `<span style="color:var(--muted)">*</span> ${PROVIDER_INFO.groundedTrademark
+        ? `<b>TM safe</b> is a live web-grounded check (${PROVIDER_INFO.provider} + Google Search)`
+        : `<b>TM safe</b> is a ${PROVIDER_INFO.provider||'model'} model-knowledge screen (not a live registry — always shows <span style="color:var(--muted)">*</span>)`} and <b>Socials</b> a live GitHub (+best-effort X/Instagram/TikTok) check. TM results are informational, not legal advice — verify at USPTO/EUIPO. `+
+    `Availability is a live RDAP lookup; “unknown” means the registry didn’t answer (rate-limit or no RDAP) — re-run or verify at a registrar.`;
+}
+
+/* ---------- wire up ---------- */
+$('genBtn').onclick=()=>{
+  const c=generateCandidates();
+  $('candidates').value=c.join('\n');
+  $('genStatus').textContent=`Generated ${c.length} candidates — edit as you like.`;
+};
+$('aiBtn').onclick=async()=>{
+  $('aiBtn').disabled=true; $('genStatus').textContent='Asking DeepSeek…';
+  try{
+    const existing=$('candidates').value.split('\n').map(cleanWord).filter(Boolean);
+    const names=await aiGenerate(30, existing);
+    if(names.length){
+      const merged=[...new Set([...existing,...names])];
+      $('candidates').value=merged.join('\n');
+      $('genStatus').textContent=`DeepSeek added ${names.length} names (${merged.length} total).`;
+    } else { $('genStatus').textContent='DeepSeek returned no names.'; }
+  }catch(e){ $('genStatus').textContent='AI error: '+e.message+' — is the server running? Use rule-based ideas instead.'; }
+  $('aiBtn').disabled=false;
+};
+$('findBtn').onclick=findAvailable;
+$('targetN').onkeydown=e=>{ if(e.key==='Enter') findAvailable(); };
+
+// Reflect the active provider (from .env) in the UI.
+(async()=>{
+  try{
+    const h=await (await fetch('/api/health')).json();
+    PROVIDER_INFO=h;
+    const nm={deepseek:'DeepSeek',gemini:'Gemini'}[h.provider]||h.provider;
+    $('aiBtn').textContent=`🤖 Generate with AI (${nm})`;
+    if(!h.keySet) $('genStatus').textContent=`⚠ No ${nm} API key set on the server (.env).`;
+  }catch{ /* backend not running — rule-based + RDAP still work */ }
+})();
+$('clearBtn').onclick=()=>{ $('candidates').value=''; $('genStatus').textContent=''; };
+$('runBtn').onclick=run;
+$('fAvail').onchange=()=>draw(selectedChips('tldChips'));
+$('f85').onchange=()=>draw(selectedChips('tldChips'));
+</script>
+</body>
+</html>

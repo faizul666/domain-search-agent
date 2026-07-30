@@ -1,0 +1,6 @@
+# Never commit your secret keys
+.env
+
+# Node
+node_modules/
+npm-debug.log*
