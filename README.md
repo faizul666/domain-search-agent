@@ -6,6 +6,8 @@ register (live RDAP), and ranks them** with a weighted 1–10 scoring model.
 
 The whole point: it only surfaces domains you can actually register.
 
+![Domain Search Agent — scored, availability-checked shortlist](docs/screenshot.png)
+
 - **AI name generation** — DeepSeek or Gemini (switchable)
 - **Live `.com` availability** — RDAP, no API key
 - **Trademark screen** — DeepSeek model-knowledge, or Gemini live web-grounded (Google Search)
@@ -65,6 +67,14 @@ key was detected.
    then scores just those.
 3. Or **🤖 Generate with AI** to fill the candidate box, then **🚀 Score current list**.
 4. Read the ranked table; filter to "available" and "85+".
+
+**1. Tell it about your business + answer 5 questions**
+
+![Intake form](docs/1-intake.png)
+
+**2. Generate names (DeepSeek/Gemini) and find available `.com`s**
+
+![Generate and find available](docs/2-generate.png)
 
 ---
 
